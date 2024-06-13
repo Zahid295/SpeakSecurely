@@ -1,19 +1,22 @@
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
-from env import Config
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask import session
+from env import MONGO_URI
 import os
 
 app = Flask(__name__)
-app.config.from_object(Config)
+app.config["MONGO_URI"] = MONGO_URI
+app.secret_key = app.config['SECRET_KEY']
 
 mongo = PyMongo(app)
 
 # User Registration
 @app.route('/register', methods=['POST'])
 def register():
+    print(mongo.db)
     data = request.get_json()
-    hashed_password = generate_password_hash(data['password'], method='sha256')
+    hashed_password = generate_password_hash(data['password'])
     mongo.db.Users.insert_one({
         'username': data['username'],
         'password': hashed_password
@@ -28,6 +31,12 @@ def login():
     if not user or not check_password_hash(user['password'], data['password']):
         return jsonify({'message': 'Invalid username or password'}), 401
     return jsonify({'message': 'Logged in successfully'}), 200
+
+# User logout
+@app.route('/logout', methods=['POST'])
+def logout():
+    session.pop('username', None)
+    return jsonify({'message': 'Logged out successfully'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
