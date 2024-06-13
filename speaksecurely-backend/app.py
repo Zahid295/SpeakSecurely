@@ -14,11 +14,20 @@ mongo = PyMongo(app)
 def register():
     data = request.get_json()
     hashed_password = generate_password_hash(data['password'], method='sha256')
-    mongo.db.users.insert_one({
+    mongo.db.Users.insert_one({
         'username': data['username'],
         'password': hashed_password
     })
     return jsonify({'message': 'Registered successfully'}), 201
+
+# User Login
+@app.route('/login', methods=['POST'])
+def login():
+    data = request.get_json()
+    user = mongo.db.Users.find_one({'username': data['username']})
+    if not user or not check_password_hash(user['password'], data['password']):
+        return jsonify({'message': 'Invalid username or password'}), 401
+    return jsonify({'message': 'Logged in successfully'}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
