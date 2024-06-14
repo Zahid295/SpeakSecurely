@@ -1,3 +1,4 @@
+# importing flask packages
 from flask import Flask, request, jsonify
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -5,6 +6,7 @@ from flask import session
 from env import MONGO_URI
 import os
 
+# flask instance
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
 app.secret_key = app.config['SECRET_KEY']
