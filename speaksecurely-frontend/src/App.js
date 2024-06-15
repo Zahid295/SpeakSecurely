@@ -11,7 +11,7 @@ function App() {
       <div className="App">
         <Header />
         <Nav />
-        <Route path="/" exact component={Home} />
+        <Route path="/" exact component={Home} />
         <Route path="/register" component={RegisterForm} />
         <Route path="/login" component={LoginForm} />
         <Footer />
@@ -20,4 +20,4 @@ function App() {
   );
 }
 
-export default App;
+export default App;
