@@ -1,9 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import RegisterForm from './components/register';
 import LoginForm from './components/login';
-import { Nav, Header, Footer } from './components/nav';
+import { Nav, Header } from './components/nav';
 import Home from './components/home';
+import Logout from './components/logout';
+
 
 function App() {
   return (
@@ -11,13 +13,15 @@ function App() {
       <div className="App">
         <Header />
         <Nav />
-        <Route path="/" exact component={Home} />
-        <Route path="/register" component={RegisterForm} />
-        <Route path="/login" component={LoginForm} />
-        <Footer />
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/register" element={<RegisterForm />} />
+          <Route path="/login" element={<LoginForm />} />
+          <Route path="/login" element={<LoginForm />} />
+        </Routes>
+        <Logout /> 
       </div>
     </Router>
   );
 }
-
 export default App;
