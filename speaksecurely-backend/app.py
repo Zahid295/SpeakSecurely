@@ -2,6 +2,7 @@
 from flask import Flask, request, jsonify, render_template
 from flask_socketio import SocketIO, emit
 from flask_pymongo import PyMongo
+from flask_cors import CORS
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
@@ -12,6 +13,9 @@ app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
 app.secret_key = app.config['SECRET_KEY']
 socketio = SocketIO(app, cors_allowed_origins='*')
+
+# Enable CORS
+CORS(app)
 
 mongo = PyMongo(app)
 
@@ -50,4 +54,4 @@ def handle_message(data):
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    socketio.run(app, debug=True)  # Use socketio.run instead of app.run
