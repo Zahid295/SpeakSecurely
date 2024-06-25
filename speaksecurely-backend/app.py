@@ -1,5 +1,6 @@
 # importing flask packages
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
+from flask_socketio import SocketIO, emit
 from flask_pymongo import PyMongo
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
@@ -10,6 +11,7 @@ import os
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
 app.secret_key = app.config['SECRET_KEY']
+socketio = SocketIO(app, cors_allowed_origins='*')
 
 mongo = PyMongo(app)
 
@@ -39,6 +41,13 @@ def login():
 def logout():
     session.pop('username', None)
     return jsonify({'message': 'Logged out successfully'}), 200
+
+# Event handler for receiving messages
+@socketio.on('send_message')
+def handle_message(data):
+    text = data.get('message', '').encode('ascii', 'ignore')
+    emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=False)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
