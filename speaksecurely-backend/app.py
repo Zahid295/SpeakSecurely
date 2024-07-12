@@ -54,4 +54,5 @@ def handle_message(data):
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True)  # Use socketio.run instead of app.run
+    # Use socketio.run instead of app.run
+    socketio.run(app, debug=True) 
