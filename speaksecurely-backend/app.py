@@ -12,10 +12,10 @@ import os
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
 app.secret_key = app.config['SECRET_KEY']
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app, cors_allowed_origins='https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/')
 
 # Enable CORS
-CORS(app)
+CORS(app, resources={r"/https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/": {"origins": "https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/"}}) 
 
 mongo = PyMongo(app)
 
