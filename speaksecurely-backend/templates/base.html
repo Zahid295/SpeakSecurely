@@ -9,20 +9,24 @@
 </head>
 <body>
     <header>
-       
         <nav>
-            
+            <ul>
+                <li><a href="{{ url_for('register') }}">Register</a></li>
+                <li><a href="{{ url_for('login') }}">Login</a></li>
+                <li><a href="{{ url_for('logout') }}">Logout</a></li>
+                <li><a href="{{ url_for('chat') }}">Chat</a></li>
+            </ul>
         </nav>
     </header>
 
     <main>
         {% block content %}
-        <!-- Main content  -->
+        <!-- Main content will be placed here by child templates -->
         {% endblock %}
     </main>
 
     <footer>
-        <!-- Footer content -->
+        <p>© {{ current_year }} Your Flask App. All rights reserved.</p>
     </footer>
     <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </body>
