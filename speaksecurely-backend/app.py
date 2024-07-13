@@ -18,14 +18,16 @@ app.config['SECRET_KEY'] = '956c04080ed8ad757ea18ab3fca9967'
 socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
 
 
-CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+
 
 mongo = PyMongo(app)
 
 
 @app.route('/')
 def index():
-    return jsonify({'message': 'Welcome to the Flask server!'}), 200
+    # Render home template
+    return render_template('index.html')
 
 # User Registration
 @app.route('/register', methods=['POST'])
@@ -60,19 +62,18 @@ def logout():
     return jsonify({'message': 'Logged out successfully'}), 200
 
 # Event handler for receiving messages
-# @socketio.on('send_message')
-# def handle_message(data):
-#     print(f"Data received: {data}")
-#     text = data.get('message', '')
-#     emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
 @socketio.on('send_message')
 def handle_message(data):
-    try:
-        print(f"Data received: {data}")  # Attempt to log all data received
-        text = data.get('message', '')
-        emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
-    except Exception as e:
-        print(f"An error occurred: {e}")
+    print(f"Data received: {data}")
+    text = data.get('message', '')
+    emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
+@socketio.on('send_message')
+def handle_message(data):
+    print("send_message event triggered")
+    print('received message: ' + data)
+    print(f"Type of received data: {type(data)}")
+    text = data.get('message', '')
+    emit('message_response', {'message': f'Server Says: {text}'}, broadcast=True, include_self=True)
 
 
 if __name__ == '__main__':
