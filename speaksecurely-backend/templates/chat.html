@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block title %}Chat Communication{% endblock %}
+
+{% block content %}
+<div id="chat-container">
+    <div id="message-area">
+        <!-- Messages displayed -->
+    </div>
+    <div id="new-message">
+        <input type="text" id="message-input" placeholder="Type your message here...">
+        <button id="send-button">Send</button>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+{% endblock %}

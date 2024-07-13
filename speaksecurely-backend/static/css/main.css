@@ -36,3 +36,45 @@ nav ul a {
     background: #e5e5e5;
     text-align: center;
 }
+
+#chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 90vh;
+    max-width: 800px;
+    margin: auto;
+    border: 1px solid #ddd;
+    background: #fff;
+}
+
+#message-area {
+    flex: 1;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#new-message {
+    display: flex;
+    padding: 10px;
+}
+
+#new-message input[type=text] {
+    flex: 1;
+    padding: 10px;
+    margin-right: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+}
+
+#new-message button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    background-color: #5cb85c;
+    color: white;
+    cursor: pointer;
+}
+
+#new-message button:hover {
+    background-color: #4cae4c;
+}
