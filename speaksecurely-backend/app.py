@@ -1,8 +1,11 @@
 # importing flask packages
 from flask import Flask, request, jsonify, render_template
+from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_pymongo import PyMongo
-from flask_cors import CORS
+from itsdangerous import Serializer
+# from itsdangerous.timed import TimestampSigner
+from itsdangerous import URLSafeTimedSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
@@ -11,13 +14,18 @@ import os
 # flask instance
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
-app.secret_key = app.config['SECRET_KEY']
-socketio = SocketIO(app, cors_allowed_origins='https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/')
+app.config['SECRET_KEY'] = '956c04080ed8ad757ea18ab3fca9967'
+socketio = SocketIO(app, cors_allowed_origins='http://localhost:3000')
 
-# Enable CORS
-CORS(app, resources={r"/https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/": {"origins": "https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4.github.dev/"}}) 
+
+CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
 
 mongo = PyMongo(app)
+
+
+@app.route('/')
+def index():
+    return jsonify({'message': 'Welcome to the Flask server!'}), 200
 
 # User Registration
 @app.route('/register', methods=['POST'])
@@ -36,9 +44,14 @@ def register():
 def login():
     data = request.get_json()
     user = mongo.db.Users.find_one({'username': data['username']})
-    if not user or not check_password_hash(user['password'], data['password']):
+    if user and check_password_hash(user['password'], data['password']):
+        # Generate a token with expiration
+        s = Serializer(app.config['SECRET_KEY'])
+        token = s.dumps({'user_id': str(user['_id'])})
+        return jsonify({'token': token}), 200
+    else:
         return jsonify({'message': 'Invalid username or password'}), 401
-    return jsonify({'message': 'Logged in successfully'}), 200
+
 
 # User logout
 @app.route('/logout', methods=['POST'])
@@ -47,10 +60,19 @@ def logout():
     return jsonify({'message': 'Logged out successfully'}), 200
 
 # Event handler for receiving messages
+# @socketio.on('send_message')
+# def handle_message(data):
+#     print(f"Data received: {data}")
+#     text = data.get('message', '')
+#     emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
 @socketio.on('send_message')
 def handle_message(data):
-    text = data.get('message', '').encode('ascii', 'ignore')
-    emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=False)
+    try:
+        print(f"Data received: {data}")  # Attempt to log all data received
+        text = data.get('message', '')
+        emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 if __name__ == '__main__':
