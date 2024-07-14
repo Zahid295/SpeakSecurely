@@ -1,5 +1,5 @@
 # importing flask packages
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_cors import CORS
 from flask_socketio import SocketIO, emit
 from flask_pymongo import PyMongo
@@ -9,6 +9,7 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
+from models import User
 import os
 
 # flask instance
@@ -33,6 +34,28 @@ def index():
 @app.route('/chat')
 def chat():
     return render_template('chat.html')
+
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        users = mongo.db.users
+        existing_user = users.find_one({'username': request.form['username']})
+
+        if existing_user is None:
+            hashed_password = generate_password_hash(request.form['password'])
+            users.insert_one({
+                'username': request.form['username'],
+                'password': hashed_password
+            })
+            session['username'] = request.form['username']
+            flash('Account created successfully!', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Username already exists')
+
+    return render_template('register.html')
+
 
 # User Registration
 # @app.route('/register', methods=['POST'])
