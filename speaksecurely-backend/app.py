@@ -9,7 +9,7 @@ from itsdangerous import URLSafeTimedSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
-from models import User
+from models.models import User
 import os
 
 # flask instance
