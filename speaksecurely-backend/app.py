@@ -57,6 +57,30 @@ def register():
     return render_template('register.html')
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        users = mongo.db.users
+        user = users.find_one({'username': request.form['username']})
+
+        if user and check_password_hash(user['password'], request.form['password']):
+            session['username'] = request.form['username']
+            flash('You were successfully logged in', 'success')
+            return redirect(url_for('index'))
+        else:
+            flash('Invalid username or password', 'danger')
+
+    return render_template('login.html')
+
+
+@app.route('/logout')
+def logout():
+    session.pop('username', None)
+    flash('You were logged out', 'success')
+    return redirect(url_for('index'))
+
+
+
 # User Registration
 # @app.route('/register', methods=['POST'])
 # def register():
