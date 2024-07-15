@@ -1,7 +1,7 @@
 # importing flask packages
-from flask import Flask, request, render_template, redirect, url_for, flash, Blueprint
-from flask_login import LoginManager, login_user, logout_user, login_required
-from flask_socketio import SocketIO, emit
+from flask import Flask, request, render_template, redirect, url_for, flash, Blueprint, jsonify
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_socketio import SocketIO, emit, disconnect
 # from flask_pymongo import PyMongo
 # from itsdangerous import Serializer
 # from itsdangerous.timed import TimestampSigner
@@ -10,14 +10,19 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
 from extensions import mongo
+import jwt
+import datetime
 
 # flask instance
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
 mongo.init_app(app)
 app.config['SECRET_KEY'] = '956c04080ed8ad757ea18ab3fca9967'
-socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
+socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000', 'https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4-5000.app.github.dev'])
 
+# JWT Secret and Algorithm
+JWT_SECRET = 'your_jwt_secret_key'  # Change to your actual JWT secret key
+JWT_ALGORITHM = 'HS256'
 
 from models.models import User
 # Initialize Flask-Login
@@ -67,6 +72,20 @@ def register():
     return render_template('register.html')
 
 
+
+# def login():
+#     if request.method == 'POST':
+#         username = request.form['username']
+#         password = request.form['password']
+#         user = User.find_by_username(username)
+#         if user and user.check_password(password):
+#             login_user(user)
+#             flash('You were successfully logged in', 'success')
+#             return redirect(url_for('routes_blueprint.chat'))
+#         else:
+#             flash('Invalid username or password', 'danger')
+#     return render_template('login.html')
+
 @routes_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -75,8 +94,14 @@ def login():
         user = User.find_by_username(username)
         if user and user.check_password(password):
             login_user(user)
+            # Generate JWT token
+            token = jwt.encode({
+                'user_id': user.id,  # Assuming the User model has an id attribute
+                'exp': datetime.datetime.utcnow() + datetime.timedelta(hours=1)  # Token expires in 1 hour
+            }, JWT_SECRET, algorithm=JWT_ALGORITHM)
             flash('You were successfully logged in', 'success')
-            return redirect(url_for('routes_blueprint.chat'))
+            # Pass the token to the client-side (e.g., as part of the redirect)
+            return redirect(url_for('routes_blueprint.chat', token=token))
         else:
             flash('Invalid username or password', 'danger')
     return render_template('login.html')
@@ -131,12 +156,36 @@ app.register_blueprint(routes_blueprint, url_prefix='/')
 #     print(f"Data received: {data}")
 #     text = data.get('message', '')
 #     emit('echo', {'echo': f'Server Says: {text}'}, broadcast=True, include_self=True)
+
+# def handle_message(data):
+#     print("send_message event triggered")
+#     message = data['message']
+#     print('received message: ' + message)
+#     emit('message_response', {'message': f'Server Says: {message}'}, broadcast=True, include_self=True)
+
 @socketio.on('send_message')
 def handle_message(data):
-    print("send_message event triggered")
-    message = data['message']
-    print('received message: ' + message)
-    emit('message_response', {'message': f'Server Says: {message}'}, broadcast=True, include_self=True)
+    # Extract the token from the incoming data
+    token = data.get('token')
+    try:
+        # Decode the token
+        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        user_id = payload.get('user_id')
+        # Fetch the user from the database
+        user = User.get(user_id)
+        if user:
+            message = data['message']
+            # Emit the message to the client
+            emit('message_response', {'message': message}, broadcast=True, include_self=True)
+        else:
+            # Disconnect the client if the user cannot be found
+            disconnect()
+    except jwt.ExpiredSignatureError:
+        # Disconnect the client if the token has expired
+        disconnect()
+    except jwt.InvalidTokenError:
+        # Disconnect the client if the token is invalid
+        disconnect()
 
 
 if __name__ == '__main__':

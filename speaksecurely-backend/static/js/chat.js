@@ -1,4 +1,4 @@
-const socket = io.connect('http://localhost:5000');
+const socket = io.connect('https://upgraded-space-tribble-7vvq9j4rgj5rfpxg4-5000.app.github.dev');
 
 document.addEventListener('DOMContentLoaded', function() {
     const messageInput = document.getElementById('message-input');
