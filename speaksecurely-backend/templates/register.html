@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form method="POST" action="{{ url_for('register') }}">
+<form method="POST" action="{{ url_for('routes_blueprint.register') }}">
     <label for="username">Username:</label>
     <input type="text" id="username" name="username" required>
     

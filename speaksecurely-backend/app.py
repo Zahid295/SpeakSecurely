@@ -1,45 +1,56 @@
 # importing flask packages
-from flask import Flask, request, render_template, redirect, url_for, flash
-from flask_cors import CORS
+from flask import Flask, request, render_template, redirect, url_for, flash, Blueprint
+from flask_login import LoginManager, login_user, logout_user, login_required
 from flask_socketio import SocketIO, emit
-from flask_pymongo import PyMongo
-from itsdangerous import Serializer
+# from flask_pymongo import PyMongo
+# from itsdangerous import Serializer
 # from itsdangerous.timed import TimestampSigner
-from itsdangerous import URLSafeTimedSerializer as Serializer
+# from itsdangerous import URLSafeTimedSerializer as Serializer
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
 from env import MONGO_URI
-from models.models import User
-import os
+from extensions import mongo
 
 # flask instance
 app = Flask(__name__)
 app.config["MONGO_URI"] = MONGO_URI
+mongo.init_app(app)
 app.config['SECRET_KEY'] = '956c04080ed8ad757ea18ab3fca9967'
 socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
 
 
-# CORS(app, resources={r"/*": {"origins": "http://localhost:3000"}})
+from models.models import User
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'routes_blueprint.login'
+
+routes_blueprint = Blueprint('routes_blueprint', __name__)
 
 
-mongo = PyMongo(app)
+# User loader callback
+@login_manager.user_loader
+def load_user(user_id):
+    # Assuming User.get(user_id) fetches the user from the database
+    return User.get(user_id)
 
 
-@app.route('/')
+@routes_blueprint.route('/')
 def index():
     # Render home template
     return render_template('index.html')
 
 
-@app.route('/chat')
+@routes_blueprint.route('/chat')
+@login_required
 def chat():
     return render_template('chat.html')
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@routes_blueprint.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        users = mongo.db.users
+        users = mongo.db.Users  # Make sure this matches the collection name
         existing_user = users.find_one({'username': request.form['username']})
 
         if existing_user is None:
@@ -48,36 +59,37 @@ def register():
                 'username': request.form['username'],
                 'password': hashed_password
             })
-            session['username'] = request.form['username']
             flash('Account created successfully!', 'success')
-            return redirect(url_for('login'))
+            return redirect(url_for('routes_blueprint.login'))
         else:
             flash('Username already exists')
 
     return render_template('register.html')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@routes_blueprint.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        users = mongo.db.users
-        user = users.find_one({'username': request.form['username']})
-
-        if user and check_password_hash(user['password'], request.form['password']):
-            session['username'] = request.form['username']
+        username = request.form['username']
+        password = request.form['password']
+        user = User.find_by_username(username)
+        if user and user.check_password(password):
+            login_user(user)
             flash('You were successfully logged in', 'success')
-            return redirect(url_for('index'))
+            return redirect(url_for('routes_blueprint.chat'))
         else:
             flash('Invalid username or password', 'danger')
-
     return render_template('login.html')
 
 
-@app.route('/logout')
+@routes_blueprint.route('/logout')
 def logout():
-    session.pop('username', None)
+    logout_user()
     flash('You were logged out', 'success')
-    return redirect(url_for('index'))
+    return redirect(url_for('routes_blueprint.index'))
+
+
+app.register_blueprint(routes_blueprint, url_prefix='/')
 
 
 
@@ -128,5 +140,4 @@ def handle_message(data):
 
 
 if __name__ == '__main__':
-    # Use socketio.run instead of app.run
     socketio.run(app, debug=True) 

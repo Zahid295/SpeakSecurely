@@ -1,4 +1,3 @@
-// Initialize the WebSocket connection
 const socket = io.connect('http://localhost:5000');
 
 document.addEventListener('DOMContentLoaded', function() {

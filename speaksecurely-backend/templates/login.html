@@ -1,12 +1,12 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<form method="POST" action="{{ url_for('login') }}">
+<form method="POST" action="{{ url_for('routes_blueprint.login') }}">
     <label for="username">Username:</label>
-    <input type="text" id="username" name="username" required>
+    <input type="text" id="username" name="username" autocomplete="username" required>
     
     <label for="password">Password:</label>
-    <input type="password" id="password" name="password" required>
+    <input type="password" id="password" name="password" autocomplete="current-password" required>
     
     <input type="submit" value="Login">
 </form>
