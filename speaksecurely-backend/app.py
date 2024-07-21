@@ -1,25 +1,28 @@
 # importing flask packages
+import os
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, session
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
 from flask_socketio import SocketIO, emit, disconnect, join_room, leave_room
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
-from env import MONGO_URI
+# from env import MONGO_URI
+from dotenv import load_dotenv
 from extensions import mongo
 import logging
 from flask_cors import CORS
 from bson import ObjectId
 import json
-import os
 
+
+load_dotenv()
 
 # Load environment variables from env.py if it exists
-try:
-    from env import MONGO_URI, SECRET_KEY
-except ImportError:
-    MONGO_URI = os.getenv('MONGO_URI')
-    SECRET_KEY = os.getenv('SECRET_KEY')
+# try:
+#     from env import MONGO_URI, SECRET_KEY
+# except ImportError:
+#     MONGO_URI = os.getenv('MONGO_URI')
+#     SECRET_KEY = os.getenv('SECRET_KEY')
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -29,11 +32,13 @@ class CustomJSONEncoder(json.JSONEncoder):
 
 # flask instance
 app = Flask(__name__)
+app.config['SECRET_KEY'] = os.getenv('SECRET_KEY')
+app.config['MONGO_URI'] = os.getenv('MONGO_URI')
+
+
 app.json_encoder = CustomJSONEncoder
 CORS(app, resources={r"/*": {"origins": "*"}})
-app.config["MONGO_URI"] = MONGO_URI
 mongo.init_app(app)
-app.config['SECRET_KEY'] = '956c04080ed8ad757ea18ab3fca9967'
 # socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
 socketio = SocketIO(app, cors_allowed_origins="*")
 
