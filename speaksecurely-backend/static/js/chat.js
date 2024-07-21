@@ -1,7 +1,7 @@
 $(document).ready(function() {
     // Connect to the SocketIO server
     const socket = io(`${window.location.protocol}//${window.location.host}`);
-    // const socket = io('http://127.0.0.1:5000');
+    // cnst socket = io('http://127.0.0.1:5000');o
     // Send message
     $('#message-form').submit(function(e) {
         e.preventDefault();

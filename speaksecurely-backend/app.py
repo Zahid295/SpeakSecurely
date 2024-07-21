@@ -11,6 +11,15 @@ import logging
 from flask_cors import CORS
 from bson import ObjectId
 import json
+import os
+
+
+# Load environment variables from env.py if it exists
+try:
+    from env import MONGO_URI, SECRET_KEY
+except ImportError:
+    MONGO_URI = os.getenv('MONGO_URI')
+    SECRET_KEY = os.getenv('SECRET_KEY')
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
