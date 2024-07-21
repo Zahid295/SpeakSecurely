@@ -41,7 +41,7 @@ $(document).ready(function() {
             },
             error: function(error) {
                 console.log("Error:", error);
-                if (xhr.status === 401) {
+                if (error.status === 401) {
                     window.location.href = '/login';
                 }
             }

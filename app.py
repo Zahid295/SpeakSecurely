@@ -96,7 +96,13 @@ def index():
      if 'user_id' not in session:
         return redirect(url_for('login'))
      user_id = session['user_id']
-     user_messages = messages.find({'recipient_id': ObjectId(user_id)})
+     user_messages = messages.find({
+        '$or': [
+            {'sender_id': ObjectId(user_id)},
+            {'recipient_id': ObjectId(user_id)}
+        ]
+    })
+    #  user_messages = messages.find({'recipient_id': ObjectId(user_id)})
      messages_list = []
      for message in user_messages:
         sender = users.find_one({'_id': message['sender_id']})
@@ -114,7 +120,13 @@ def get_messages():
         return make_response('Unauthorized', 401)
     # Assuming 'user_id' is stored in session when the user logs in
     user_id = session['user_id']
-    user_messages = messages.find({'recipient_id': ObjectId(user_id)})
+    user_messages = messages.find({
+        '$or': [
+            {'sender_id': ObjectId(user_id)},
+            {'recipient_id': ObjectId(user_id)}
+        ]
+    })
+    # user_messages = messages.find({'recipient_id': ObjectId(user_id)})
     result = []
     for message in user_messages:
         sender = users.find_one({'_id': message['sender_id']})
