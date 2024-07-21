@@ -181,4 +181,4 @@ def handle_disconnect():
 
 
 if __name__ == '__main__':
-    socketio.run(app, debug=True) 
+    socketio.run(app, debug=False) 
