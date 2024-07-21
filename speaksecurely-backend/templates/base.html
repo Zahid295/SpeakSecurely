@@ -3,37 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Your Flask App{% endblock %}</title>
+    <title>{% block title %}{% endblock %} - YourApp</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
 </head>
 <body>
-    <header>
-        <nav>
-            <ul>
-            {% if not current_user.is_authenticated %}
-                    <li><a href="{{ url_for('routes_blueprint.register') }}">Register</a></li>
-                    <li><a href="{{ url_for('routes_blueprint.login') }}">Login</a></li>
-                {% else %}
-                    <li><a href="{{ url_for('routes_blueprint.logout') }}">Logout</a></li>
-                    <li><a href="{{ url_for('routes_blueprint.chat') }}">Chat</a></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </header>
-
-    <main>
+    <nav>
+       <!-- Navigation Bar -->
+       {% if 'user_id' in session %}
+       <a href="{{ url_for('logout') }}">Logout</a>
+   {% else %}
+       <a href="{{ url_for('login') }}">Login</a>
+       <a href="{{ url_for('register') }}">Register</a>
+   {% endif %}
+    </nav>
+    <section class="content">
         {% block content %}
-        <!-- Main content  -->
         {% endblock %}
-    </main>
-
-    <footer>
-        <p>© {{ current_year }} Your Flask App. All rights reserved.</p>
-    </footer>
-    <!-- <script src="https://cdn.socket.io/socket.io-3.0.3.min.js"></script> -->
-    <script src="https://cdn.socket.io/4.0.0/socket.io.min.js"></script>
-    {% block scripts %}
-    
-    {% endblock %}
+    </section>
 </body>
 </html>
+

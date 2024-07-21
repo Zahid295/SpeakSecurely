@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block title %}Messages{% endblock %}
+
+{% block content %}
+<h2>Messages</h2>
+<div id="messages">
+    {% for message in messages %}
+        <p><strong>{{ message.sender }}</strong>: {{ message.body }}</p>
+    {% endfor %}
+</div>
+<form id="message-form" method="POST" action="{{ url_for('send_message') }}">
+    <input type="text" id="recipient" name="recipient" placeholder="Recipient Username" required>
+    <textarea id="message" name="message" placeholder="Your message" required></textarea>
+    <input type="submit" value="Send">
+</form>
+{% endblock %}

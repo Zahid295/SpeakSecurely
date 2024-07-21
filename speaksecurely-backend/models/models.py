@@ -1,60 +1,63 @@
-from flask import current_app
-from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-from bson.objectid import ObjectId
-from extensions import mongo
+# from flask import current_app
+# from flask_login import UserMixin
+# from werkzeug.security import generate_password_hash, check_password_hash
+# from bson.objectid import ObjectId
+# from extensions import mongo
 
-# User Model
-class User(UserMixin):
-    def __init__(self, username, password, _id=None):
-        self.username = username
-        self.password = password  # Changed from password_hash to password
-        self._id = _id
+# # User Model
+# class User(UserMixin):
+#     def __init__(self, username, password, _id=None):
+#         self.username = username
+#         self.password = password  # Changed from password_hash to password
+#         self._id = _id
 
-    @staticmethod
-    def create(username, password):
-        hashed_password = generate_password_hash(password)
-        user_id = mongo.db.Users.insert_one({  # Changed to 'Users' to match your collection name
-            'username': username,
-            'password': hashed_password  # Field name changed to 'password'
-        }).inserted_id
-        return User(username, hashed_password, user_id)
+#     @staticmethod
+#     def create(username, password):
+#         hashed_password = generate_password_hash(password)
+#         user_id = mongo.db.Users.insert_one({  # Changed to 'Users' to match your collection name
+#             'username': username,
+#             'password': hashed_password  # Field name changed to 'password'
+#         }).inserted_id
+#         return User(username, hashed_password, user_id)
 
-    @staticmethod
-    def find_by_username(username):
-        user_data = mongo.db.Users.find_one({'username': username})  # Changed to 'Users'
-        if user_data:
-            return User(username=user_data['username'], password=user_data['password'], _id=user_data['_id'])
-        return None
+#     @staticmethod
+#     def find_by_username(username):
+#         user_data = mongo.db.Users.find_one({'username': username})  # Changed to 'Users'
+#         if user_data:
+#             return User(username=user_data['username'], password=user_data['password'], _id=user_data['_id'])
+#         return None
 
-    @staticmethod
-    def get(user_id):
-        user_data = mongo.db.Users.find_one({'_id': ObjectId(user_id)})  # Changed to 'Users'
-        if user_data:
-            return User(username=user_data['username'], password=user_data['password'], _id=user_data['_id'])
-        return None
+#     @staticmethod
+#     def get(user_id):
+#         user_data = mongo.db.Users.find_one({'_id': ObjectId(user_id)})  # Changed to 'Users'
+#         if user_data:
+#             return User(username=user_data['username'], password=user_data['password'], _id=user_data['_id'])
+#         return None
 
-    def check_password(self, password):
-        return check_password_hash(self.password, password)  # Changed from password_hash to password
+#     # def check_password(self, password):
+#     #     return check_password_hash(self.password, password)  # Changed from password_hash to password
+#     def check_password(self, password):
+#     # Ensure that the password argument is hashed before comparison
+#         return check_password_hash(self.password, password)
 
-    def get_id(self):
-        return str(self._id)
+#     def get_id(self):
+#         return str(self._id)
     
-    @property
-    def is_active(self):
-        """True, as all users are active."""
-        return True
+#     @property
+#     def is_active(self):
+#         """True, as all users are active."""
+#         return True
 
-    @staticmethod
-    def update(username, update_data):
-        mongo.db.Users.update_one(  # Changed to 'Users'
-            {'username': username},
-            {'$set': update_data}
-        )
+#     @staticmethod
+#     def update(username, update_data):
+#         mongo.db.Users.update_one(  # Changed to 'Users'
+#             {'username': username},
+#             {'$set': update_data}
+#         )
 
-    @staticmethod
-    def delete(username):
-        mongo.db.Users.delete_one({'username': username})  # Changed to 'Users'
+#     @staticmethod
+#     def delete(username):
+#         mongo.db.Users.delete_one({'username': username})  # Changed to 'Users'
 
 
 # # Session Model
