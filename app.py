@@ -6,10 +6,8 @@ from flask_socketio import SocketIO, emit, disconnect, join_room, leave_room
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
-# from env import MONGO_URI
 from dotenv import load_dotenv
 from extensions import mongo
-import logging
 from flask_cors import CORS
 from bson import ObjectId
 import json
@@ -17,12 +15,6 @@ import json
 
 load_dotenv()
 
-# Load environment variables from env.py if it exists
-# try:
-#     from env import MONGO_URI, SECRET_KEY
-# except ImportError:
-#     MONGO_URI = os.getenv('MONGO_URI')
-#     SECRET_KEY = os.getenv('SECRET_KEY')
 
 class CustomJSONEncoder(json.JSONEncoder):
     def default(self, obj):
@@ -39,7 +31,6 @@ app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 app.json_encoder = CustomJSONEncoder
 CORS(app, resources={r"/*": {"origins": "*"}})
 mongo.init_app(app)
-# socketio = SocketIO(app, cors_allowed_origins=['http://localhost:5000', 'http://127.0.0.1:5000'])
 socketio = SocketIO(app, cors_allowed_origins="*")
 
 
@@ -109,7 +100,6 @@ def index():
      messages_list = []
      for message in user_messages:
         sender = users.find_one({'_id': message['sender_id']})
-        logging.debug(f"Sender ID: {message['sender_id']}, Sender: {sender}")
         if sender:
             message['sender'] = sender['username']  # Get sender's username
         else:
@@ -132,7 +122,6 @@ def get_messages():
             sender_username = sender['username']
         else:
             sender_username = 'Unknown'
-            logging.warning(f"Sender with ID {sender} not found.")
         message_dict = {
             '_id': str(message['_id']),
             'sender': sender_username,
@@ -143,28 +132,22 @@ def get_messages():
     return jsonify(result)
 
 
-# Set up logging
-logging.basicConfig(level=logging.DEBUG)
-
 @app.route('/send', methods=['POST'])
 @login_required
 def send_message():
     try:
         recipient_username = request.form.get('recipient')
         body = request.form.get('message')
-        
-        logging.debug(f"Recipient Username: {recipient_username}")
-        logging.debug(f"Message Body: {body}")
 
         if not recipient_username or not body:
-            logging.error("Recipient username or message body is missing.")
+
             return make_response('Bad Request', 400)
         
         recipient_user = users.find_one({'username': recipient_username})
         
         if not recipient_user:
             flash('Recipient user does not exist.')
-            logging.error("Recipient user does not exist.")
+
             return redirect(url_for('index'))
         
         messages.insert_one({
@@ -172,11 +155,11 @@ def send_message():
             'recipient_id': ObjectId(recipient_user['_id']),
             'body': body
         })
-        logging.info("Message sent successfully.")
+
         return redirect(url_for('index'))
     
     except Exception as e:
-        logging.error(f"Error in send_message: {e}")
+        (f"Error in send_message: {e}")
         return make_response('Internal Server Error', 500)
     
 
