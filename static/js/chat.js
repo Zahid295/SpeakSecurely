@@ -1,13 +1,12 @@
 $(document).ready(function() {
     // Connect to the SocketIO server
-    const socket = io();
-    // const socket = io(`${window.location.protocol}//${window.location.host}`);
+    const socket = io(`${window.location.protocol}//${window.location.host}`);
     // Send message
     $('#message-form').submit(function(e) {
         e.preventDefault();
         $.ajax({
             type: 'POST',
-            url: `/send`,// The route that will handle the post request
+            url: `${window.location.protocol}//${window.location.host}/send`,// The route that will handle the post request
             data: {
                 recipient: $('#recipient').val(),
                 message: $('#message').val()
@@ -31,7 +30,7 @@ $(document).ready(function() {
     function refreshMessages() {
         $.ajax({
             type: 'GET',
-            url: `/messages`, // The route that will handle the get request
+            url: `${window.location.protocol}//${window.location.host}/messages`, // The route that will handle the get request
             success: function(messages) {
                 $('#messages').empty(); // Clear the messages div
                 for (let i = 0; i < messages.length; i++) {

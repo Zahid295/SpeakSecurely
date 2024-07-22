@@ -1,8 +1,8 @@
 # importing flask packages
 import os
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, session
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user, UserMixin
-from flask_socketio import SocketIO, emit, disconnect, join_room, leave_room
+from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin
+from flask_socketio import SocketIO, emit
 from bson.objectid import ObjectId
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask import session
