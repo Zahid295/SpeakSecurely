@@ -1,6 +1,11 @@
 $(document).ready(function() {
     // Connect to the SocketIO server
-    const socket = io(`${window.location.protocol}//${window.location.host}`);
+     // Correct protocol is used
+     const protocol = window.location.protocol === 'https:' ? 'https:' : 'http:';
+     const socket = io(`${protocol}//${window.location.host}`, {
+         transports: ['websocket', 'polling'],
+         upgrade: false
+     });
     // Send message
     $('#message-form').submit(function(e) {
         e.preventDefault();

@@ -29,7 +29,8 @@ app.config['MONGO_URI'] = os.getenv('MONGO_URI')
 
 
 app.json_encoder = CustomJSONEncoder
-CORS(app, resources={r"/*": {"origins": "*"}})
+# CORS(app, resources={r"/*": {"origins": "*"}})
+CORS(app)
 mongo.init_app(app)
 socketio = SocketIO(app, cors_allowed_origins="*")
 
