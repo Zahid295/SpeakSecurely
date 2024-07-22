@@ -3,6 +3,17 @@
 {% block title %}Messages{% endblock %}
 
 {% block content %}
+<!-- Contacts List -->
+<div id="contacts">
+    <h3>Contacts</h3>
+    <ul>
+        {% for contact in contacts %}
+            <li>
+                <a href="#" class="contact" data-username="{{ contact.username }}">{{ contact.username }}</a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
 <h2>Messages</h2>
 <div id="messages">
     {% for message in messages %}

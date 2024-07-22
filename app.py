@@ -112,7 +112,13 @@ def index():
         else:
             message['sender'] = 'Unknown'  # Handle case where sender is not found
         messages_list.append(message)
-     return render_template('messages.html', messages=user_messages)
+     # Fetch list of all users except the current user
+     contacts = users.find({'_id': {'$ne': ObjectId(user_id)}})
+
+     # Convert MongoDB cursor to a list of dictionaries
+     contacts_list = [contact for contact in contacts]
+
+     return render_template('messages.html', messages=user_messages, contacts=contacts_list)
 
 @app.route('/messages', methods=['GET'])
 @login_required

@@ -6,6 +6,12 @@ $(document).ready(function() {
          transports: ['websocket', 'polling'],
          upgrade: false
      });
+     // Handle contact click to populate recipient field
+    $('#contacts').on('click', '.contact', function(e) {
+        e.preventDefault();
+        const username = $(this).data('username');
+        $('#recipient').val(username);
+    });
     // Send message
     $('#message-form').submit(function(e) {
         e.preventDefault();
