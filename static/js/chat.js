@@ -10,7 +10,10 @@ $(document).ready(function() {
     $('#contacts').on('click', '.contact', function(e) {
         e.preventDefault();
         const username = $(this).data('username');
+        const recipientId = $(this).data('id');
         $('#recipient').val(username);
+        $('#recipient-id').val(recipientId);
+        refreshMessages(recipientId); 
     });
     // Send message
     $('#message-form').submit(function(e) {
@@ -20,11 +23,13 @@ $(document).ready(function() {
             url: `${window.location.protocol}//${window.location.host}/send`,// The route that will handle the post request
             data: {
                 recipient: $('#recipient').val(),
+                recipient_id: $('#recipient-id').val(), 
                 message: $('#message').val()
             },
             success: function(response) {
                 // Clear the message input field
                 $('#message').val('');
+                refreshMessages($('#recipient-id').val());
                 // Optionally, you can add the new message to the chat window
             },
             error: function(error) {
@@ -38,10 +43,10 @@ $(document).ready(function() {
     });
 
     // Function to refresh the messages
-    function refreshMessages() {
+    function refreshMessages(recipientId) {
         $.ajax({
             type: 'GET',
-            url: `${window.location.protocol}//${window.location.host}/messages`, // The route that will handle the get request
+            url: `${window.location.protocol}//${window.location.host}/messages/${recipientId}`, // The route that will handle the get request
             success: function(messages) {
                 $('#messages').empty(); // Clear the messages div
                 for (let i = 0; i < messages.length; i++) {
@@ -60,7 +65,10 @@ $(document).ready(function() {
 
     // Handle real-time message updates
     socket.on('message', function(data) {
+        const currentRecipientId = $('#recipient-id').val();
+        if (data.sender_id === currentRecipientId || data.recipient_id === currentRecipientId) {
         $('#messages').append('<p><strong>' + data.sender + '</strong>: ' + data.body + '</p>');
+        }
     });
 
     // Refresh messages every 5 seconds

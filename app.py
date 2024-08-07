@@ -1,5 +1,6 @@
 # importing flask packages
 import os
+import atexit
 from flask import Flask, request, render_template, redirect, url_for, flash, jsonify, make_response, session
 from flask_login import LoginManager, login_user, logout_user, login_required, UserMixin
 from flask_socketio import SocketIO, emit
@@ -11,6 +12,13 @@ from extensions import mongo
 from flask_cors import CORS
 from bson import ObjectId
 import json
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime, timezone, timedelta
+import bleach
+
+# Clean inputs
+def sanitize(input_string):
+    return bleach.clean(input_string)
 
 
 load_dotenv()
@@ -61,8 +69,8 @@ messages = mongo.db.messages
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = sanitize(request.form['username'])
+        password = sanitize(request.form['password'])
         hashed_password = generate_password_hash(password)
         users.insert_one({'username': username, 'password': hashed_password})
         return redirect(url_for('login'))
@@ -71,8 +79,8 @@ def register():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = sanitize(request.form['username'])
+        password = sanitize(request.form['password'])
         user = users.find_one({'username': username})
         if user and check_password_hash(user['password'], password):
             user_obj = User(str(user['_id']))
@@ -120,19 +128,21 @@ def index():
 
      return render_template('messages.html', messages=user_messages, contacts=contacts_list)
 
-@app.route('/messages', methods=['GET'])
+@app.route('/messages/<recipient_id>', methods=['GET'])
 @login_required
-def get_messages():
+def get_messages(recipient_id):
+    sanitized_recipient_id = sanitize(recipient_id)
+
     if 'user_id' not in session:
         return make_response('Unauthorized', 401)
     # Assuming 'user_id' is stored in session when the user logs in
     user_id = session['user_id']
     user_messages = messages.find({
         '$or': [
-            {'sender_id': ObjectId(user_id)},
-            {'recipient_id': ObjectId(user_id)}
+            {'sender_id': ObjectId(user_id), 'recipient_id': ObjectId(sanitized_recipient_id)},
+            {'sender_id': ObjectId(sanitized_recipient_id), 'recipient_id': ObjectId(user_id)}
         ]
-    })
+    }).sort('timestamp', 1)
     # user_messages = messages.find({'recipient_id': ObjectId(user_id)})
     result = []
     for message in user_messages:
@@ -145,7 +155,8 @@ def get_messages():
             '_id': str(message['_id']),
             'sender': sender_username,
             'recipient_id': str(message['recipient_id']),
-            'body': message['body']
+            'body': message['body'],
+            'timestamp': message['timestamp']
         }
         result.append(message_dict)
     return jsonify(result)
@@ -155,8 +166,8 @@ def get_messages():
 @login_required
 def send_message():
     try:
-        recipient_username = request.form.get('recipient')
-        body = request.form.get('message')
+        recipient_username = sanitize(request.form.get('recipient'))
+        body = sanitize(request.form.get('message'))
 
         if not recipient_username or not body:
 
@@ -172,7 +183,8 @@ def send_message():
         messages.insert_one({
             'sender_id': ObjectId(session['user_id']),
             'recipient_id': ObjectId(recipient_user['_id']),
-            'body': body
+            'body': body,
+            'timestamp': datetime.now(timezone.utc)
         })
 
         return redirect(url_for('index'))
@@ -199,5 +211,19 @@ def handle_disconnect():
         emit('status', {'message': 'Disconnected', 'user_id': user_id})
 
 
+# Function to delete messages older than one week
+def delete_old_messages():
+    one_week_ago = datetime.now(timezone.utc) - timedelta(weeks=1)
+    messages.delete_many({'timestamp': {'$lt': one_week_ago}})
+
+# Schedule the task
+scheduler = BackgroundScheduler()
+scheduler.add_job(delete_old_messages, 'interval', days=1)
+scheduler.start()
+
+# Ensure the scheduler shuts down when the app exits
+atexit.register(lambda: scheduler.shutdown())
+
+
 if __name__ == '__main__':
-    socketio.run(app, debug=False) 
+    socketio.run(app, debug=True) 

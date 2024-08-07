@@ -9,19 +9,20 @@
     <ul>
         {% for contact in contacts %}
             <li>
-                <a href="#" class="contact" data-username="{{ contact.username }}">{{ contact.username }}</a>
+                <a href="#" class="contact" data-username="{{ contact.username }}" data-id="{{ contact._id }}">{{ contact.username }}</a>
             </li>
         {% endfor %}
     </ul>
 </div>
 <h2>Messages</h2>
 <div id="messages">
-    {% for message in messages %}
+    <!-- {% for message in messages %}
         <p><strong>{{ message.sender }}</strong>: {{ message.body }}</p>
-    {% endfor %}
+    {% endfor %} -->
 </div>
 <form id="message-form" method="POST" action="{{ url_for('send_message') }}">
-    <input type="text" id="recipient" name="recipient" placeholder="Recipient Username" required>
+    <input type="text" id="recipient" name="recipient" placeholder="Recipient Username" required readonly>
+    <input type="hidden" id="recipient-id" name="recipient_id">
     <textarea id="message" name="message" placeholder="Your message" required></textarea>
     <input type="submit" value="Send">
 </form>
